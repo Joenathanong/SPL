@@ -1,6 +1,6 @@
 // Konfigurasi global
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exechttps://script.google.com/macros/s/AKfycbwJwBJDKbFRIgIVvCVD0JjH6LHhspx8Ty0GTSW2vjbYnSN-tdAP9P8iiRmdriLfvdY8/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbydumNQ3HN-SjS_jVkr7EfPQGhXJi47v0Bu-d_lvcsQuPr1UepiD-RAytJR-C9EydpI/exec',
     DEPARTEMEN: ['FGWH', 'WH', 'LOGISTIK', 'PRODUKSI'],
     STATUS: ['BULANAN', 'HARIAN']
 };
@@ -95,4 +95,5 @@ function validateLemburForm(data) {
     }
     
     return errors;
+
 }
