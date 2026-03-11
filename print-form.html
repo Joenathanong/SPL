@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form HRD-34 | Print</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background: #fff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .print-container {
+            width: 21cm;
+            min-height: 29.7cm;
+            padding: 1.5cm;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 0 auto;
+        }
+        
+        /* Kop Form */
+        .header-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .header-subtitle {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        /* Info Baris */
+        .info-row {
+            display: flex;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .info-label {
+            width: 120px;
+        }
+        
+        .info-value {
+            font-weight: bold;
+        }
+        
+        /* Tabel */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+        
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .no-col { width: 5%; }
+        .nama-col { width: 20%; }
+        .lembur-col { width: 30%; }
+        .jam-col { width: 10%; }
+        .istirahat-col { width: 10%; }
+        .paraf-col { width: 5%; }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* Signature */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            font-size: 12px;
+        }
+        
+        .signature-box {
+            text-align: center;
+            width: 30%;
+        }
+        
+        .signature-line {
+            margin-top: 40px;
+            padding-top: 5px;
+            border-top: 1px dashed black;
+        }
+        
+        .keterangan {
+            margin-top: 20px;
+            font-size: 11px;
+            font-style: italic;
+        }
+        
+        /* Print Button */
+        .print-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            background: #45a049;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            
+            .print-container {
+                box-shadow: none;
+                padding: 0.5cm;
+                width: 100%;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            th {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Cetak Form HRD-34</button>
+    
+    <div class="print-container" id="printContainer">
+        <div class="loading">Memuat data...</div>
+    </div>
+    
+    <script>
+        // Konfigurasi API
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwJwBJDKbFRIgIVvCVD0JjH6LHhspx8Ty0GTSW2vjbYnSN-tdAP9P8iiRmdriLfvdY8/exec';
+        
+        // Ambil parameter dari URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tanggalParam = urlParams.get('tanggal') || new Date().toISOString().split('T')[0];
+        const idParam = urlParams.get('id');
+        
+        // Load data
+        window.onload = function() {
+            if (idParam) {
+                loadDataById(idParam);
+            } else {
+                loadDataByDate(tanggalParam);
+            }
+        };
+        
+        function loadDataByDate(tanggal) {
+            fetch(`${API_URL}?action=getDataByDate&tanggal=${tanggal}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderForm(data.data, tanggal);
+                    } else {
+                        showError('Gagal memuat data');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Gagal terhubung ke server');
+                });
+        }
+        
+        function loadDataById(id) {
+            fetch(`${API_URL}?action=getDataById&id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderForm([data.data], data.data.tanggal);
+                    } else {
+                        showError('Data tidak ditemukan');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Gagal terhubung ke server');
+                });
+        }
+        
+        function renderForm(data, tanggal) {
+            // Format tanggal ke bahasa Indonesia
+            const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const tgl = new Date(tanggal);
+            const hariName = hari[tgl.getDay()];
+            const tglNum = tgl.getDate();
+            const bulanName = bulan[tgl.getMonth()];
+            const tahun = tgl.getFullYear();
+            
+            // Ambil departemen dari data pertama
+            const dept = data.length > 0 ? data[0].dept : 'FGWH';
+            const status = data.length > 0 ? data[0].status : 'BULANAN';
+            
+            // Buat HTML Form
+            let html = `
+                <div class="header-title">Form HRD - 34</div>
+                <div class="header-subtitle">Formulir Pengajuan dan Pelaksanaan Kerja Lembur</div>
+                
+                <div class="info-row">
+                    <span class="info-label">HARI/TANGGAL</span>
+                    <span class="info-value">: ${hariName}, ${tglNum} ${bulanName} ${tahun}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">DEPARTEMENT</span>
+                    <span class="info-value">: ${dept}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">STATUS KARYAWAN</span>
+                    <span class="info-value">: ${status}</span>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th rowspan="2">NO.</th>
+                            <th rowspan="2">NAMA KARYAWAN</th>
+                            <th rowspan="2">LEMBUR YANG DIRENCANAKAN</th>
+                            <th colspan="3">HASIL LEMBUR</th>
+                            <th rowspan="2">PARAF</th>
+                        </tr>
+                        <tr>
+                            <th>MULAI</th>
+                            <th>ISTIRAHAT</th>
+                            <th>SELESAI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Isi data karyawan
+            data.forEach((row, index) => {
+                // Format istirahat
+                let istirahatText = row.jam_istirahat;
+                if (row.jam_istirahat == 0.5) istirahatText = '1/2 Jam';
+                else if (row.jam_istirahat == 0) istirahatText = 'x';
+                else istirahatText = row.jam_istirahat + ' Jam';
+                
+                html += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td>${row.nama}</td>
+                        <td>${row.lembur_bagian}: ${row.keterangan || ''}</td>
+                        <td class="text-center">${row.jam_mulai}</td>
+                        <td class="text-center">${istirahatText}</td>
+                        <td class="text-center">${row.jam_pulang}</td>
+                        <td></td>
+                    </tr>
+                `;
+            });
+            
+            // Tambah baris kosong sampai 15 baris
+            for (let i = data.length; i < 17; i++) {
+                html += `
+                    <tr>
+                        <td class="text-center">${i + 1}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                    </tbody>
+                </table>
+                
+                <div class="keterangan">
+                    Keterangan : - Lembur dapat dilaksanakan setelah SPL ditandatangani oleh Atasan langsung & Manager<br>
+                    - Keterlambatan penyerahan SPL tidak dibayar
+                </div>
+                
+                <div class="signature-section">
+                    <div class="signature-box">
+                        Penanggung Jawab/SPV<br>
+                        <div class="signature-line"></div>
+                    </div>
+                    <div class="signature-box">
+                        Disetujui Manager Logistik<br>
+                        <div class="signature-line"></div>
+                    </div>
+                    <div class="signature-box">
+                        Dieck HRD<br>
+                        <div class="signature-line"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('printContainer').innerHTML = html;
+        }
+        
+        function showError(message) {
+            document.getElementById('printContainer').innerHTML = `
+                <div style="text-align: center; padding: 50px; color: red;">
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <button onclick="window.location.href='index.html'" style="padding: 10px 20px; margin-top: 20px;">Kembali</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

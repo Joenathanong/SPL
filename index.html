@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRD-34 | Sistem Lembur</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="assets/logo.png" alt="Logo Perusahaan" class="logo">
+            <h1>Sistem Pengajuan Lembur HRD-34</h1>
+            <p>Departemen FGWH - Bulanan</p>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="nav-menu">
+            <a href="index.html" class="active">🏠 Dashboard</a>
+            <a href="form-input.html">📝 Input Lembur</a>
+            <a href="print-form.html?date=today">🖨️ Print Form Hari Ini</a>
+            <a href="#" onclick="openReport()">📊 Laporan Bulanan</a>
+        </div>
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h3>Filter Data Lembur</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Tanggal:</label>
+                    <input type="date" id="filterTanggal" value="2026-03-04">
+                </div>
+                <div class="filter-group">
+                    <label>Departemen:</label>
+                    <select id="filterDept">
+                        <option value="FGWH">FGWH</option>
+                        <option value="WH">WH</option>
+                        <option value="LOGISTIK">Logistik</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button onclick="loadData()" class="btn-primary">🔍 Tampilkan</button>
+                    <button onclick="resetFilter()" class="btn-secondary">↺ Reset</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabel Data Lembur -->
+        <div class="table-container">
+            <h3>Daftar Karyawan Lembur</h3>
+            <table id="tabelLembur">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Bagian</th>
+                        <th>Jam Mulai</th>
+                        <th>Jam Pulang</th>
+                        <th>Total Jam</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center">Memuat data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2026 - Sistem HRD-34 | Data tersimpan di Google Sheets</p>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        // Konfigurasi API URL (ganti dengan URL Apps Script Anda)
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwJwBJDKbFRIgIVvCVD0JjH6LHhspx8Ty0GTSW2vjbYnSN-tdAP9P8iiRmdriLfvdY8/exec';
+        
+        // Load data saat halaman dimuat
+        window.onload = function() {
+            loadData();
+        };
+        
+        function loadData() {
+            const tanggal = document.getElementById('filterTanggal').value;
+            
+            fetch(`${API_URL}?action=getDataByDate&tanggal=${tanggal}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderTable(data.data);
+                    } else {
+                        alert('Gagal memuat data: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Gagal terhubung ke server');
+                });
+        }
+        
+        function renderTable(data) {
+            const tbody = document.getElementById('dataTableBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada data lembur</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            data.forEach((row, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${row.nama}</td>
+                        <td>${row.lembur_bagian}</td>
+                        <td>${row.jam_mulai}</td>
+                        <td>${row.jam_pulang}</td>
+                        <td>${row.total_jam} jam</td>
+                        <td>
+                            <button onclick="editData(${row.id})" class="btn-small">✏️</button>
+                            <button onclick="printData(${row.id})" class="btn-small">🖨️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function resetFilter() {
+            document.getElementById('filterTanggal').value = '2026-03-04';
+            document.getElementById('filterDept').value = 'FGWH';
+            loadData();
+        }
+        
+        function openReport() {
+            window.location.href = 'dashboard.html';
+        }
+        
+        function editData(id) {
+            window.location.href = `form-input.html?id=${id}`;
+        }
+        
+        function printData(id) {
+            window.open(`print-form.html?id=${id}`, '_blank');
+        }
+    </script>
+</body>
+</html>
